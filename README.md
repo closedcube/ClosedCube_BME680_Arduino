@@ -26,7 +26,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic1.jpg)
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic2.jpg)
-![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic3.jpg)
+![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic10.jpg)
 
 ----------
 ### Where to Buy?
