@@ -10,7 +10,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 **Features:**
 
  - Temperature, Himidit, Pressure and Gas sensors in the same package
- - Low Supply Current (standby < 1 uA)
+ - Low Supply Current
  - Detected Gases includes:
    -  Volatile Organic Compounds (VOC) from paints (such as formaldehyde)
    -  lacquers
