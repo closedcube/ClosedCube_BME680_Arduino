@@ -41,7 +41,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 
 [![](http://images.closedcube.uk/logo/github/ebay.gif)](http://www.ebay.co.uk/itm/182877251201)
 
-http://www.ebay.co.uk/itm/182145992027
+http://www.ebay.co.uk/itm/182877251201
 
 [![](http://images.closedcube.uk/logo/github/tindie.png)](https://www.tindie.com/stores/closedcube/)
 
