@@ -39,7 +39,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 - Amazon IT *(TBD)*
 - Amazon ES *(TBD)*
 
-[![](http://images.closedcube.uk/logo/github/ebay.gif)](http://www.ebay.co.uk/itm/182145992027)
+[![](http://images.closedcube.uk/logo/github/ebay.gif)](http://www.ebay.co.uk/itm/182877251201)
 
 http://www.ebay.co.uk/itm/182145992027
 
