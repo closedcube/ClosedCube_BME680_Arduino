@@ -12,7 +12,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
  - Temperature, Himidit, Pressure and Gas sensors in the same package
  - Low Supply Current
  - Detected Gases includes:
-   -  Volatile Organic Compounds (VOC) from paints (such as formaldehyde)
+   -  volatile Organic Compounds (VOC) from paints (such as formaldehyde)
    -  lacquers
    -  paint strippers
    -  cleaning supplies
