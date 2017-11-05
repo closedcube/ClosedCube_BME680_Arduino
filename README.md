@@ -3,7 +3,7 @@ ClosedCube BME680 Environment Sensor with 1.8V Output breakout board
 ================================================================================================================
 
 This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.com/bst/products/all_products/bme680)
- 4-in-1 integrated environment sensor (temperature, humidity, pressure, gas and indoor air quality) with [Texas Instruments TPS62743](http://www.ti.com/product/TPS62743) Ultralow Quiescent Current Buck Converter
+ 4-in-1 integrated environment sensor (temperature, humidity, pressure, gas and indoor air quality) that power up with [Texas Instruments TPS62743](http://www.ti.com/product/TPS62743) Ultralow Buck Converter
 
 ---
 
