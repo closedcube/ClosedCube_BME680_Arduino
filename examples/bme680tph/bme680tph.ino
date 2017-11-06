@@ -36,6 +36,8 @@ void setup()
 
 	// oversampling: humidity = x1, temperature = x2, pressure = x16
 	bme680.setOversampling(BME680_OVERSAMPLING_X1, BME680_OVERSAMPLING_X2, BME680_OVERSAMPLING_X16);
+	bme680.setIIRFilter(BME680_FILTER_3);
+
 	bme680.setForcedMode();
 }
 
@@ -50,11 +52,11 @@ void loop()
 
 		Serial.print("T=");
 		Serial.print(temp);
-		Serial.print("C, RH=");
+		Serial.print("C, H=");
 		Serial.print(hum);
 		Serial.print("%, P=");
 		Serial.print(pres);
-		Serial.print("mbar");
+		Serial.print("hPa");
 
 		Serial.println();
 
@@ -76,7 +78,7 @@ ClosedCube_BME680_Status readAndPrintStatus() {
 	Serial.print(status.gasMeasuringStatusFlag);
 	Serial.print(",");
 	Serial.print(status.gasMeasurementIndex);
-	Serial.println(") newDataFlag,StatusFlag,GasFlag,GasIndex");
+	Serial.println(") (newDataFlag,StatusFlag,GasFlag,GasIndex)");
 	return status;
 }
 

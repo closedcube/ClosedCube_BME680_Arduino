@@ -33,8 +33,10 @@ THE SOFTWARE.
 #include "ClosedCube_BME680.h"
 
 
+
 ClosedCube_BME680::ClosedCube_BME680() {
 }
+
 
 void ClosedCube_BME680::init(uint8_t address) {
 	_address = address;
@@ -77,19 +79,32 @@ ClosedCube_BME680_Status ClosedCube_BME680::readStatus() {
 	return status;
 }
 
+float ClosedCube_BME680::readGasResistance() {
+	uint8_t gas_msb = readByte(0x25);
+	uint8_t gas_lsb = readByte(0x26);
+	uint8_t gas_range = readByte(0x2B);
+
+	uint16_t gas_raw = gas_msb << 8 | gas_lsb;
+
+	int64_t var1;
+	int64_t var2;
+	int64_t var3;
+
+	//var1 = (int64_t)((1340 + (5 * (int64_t)dev->calib.range_sw_err)) * ((int64_t)lookupTable1[gas_range])) / 65536;
+	//var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
+	//var3 = (((int64_t)lookupTable2[gas_range] * (int64_t)var1) / 512);
+
+	//return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
+	return 0.0f;
+}
+
 float ClosedCube_BME680::readHumidity() {
 	uint8_t hum_msb = readByte(0x25);
 	uint8_t hum_lsb = readByte(0x26);
 
 	uint16_t hum_raw = hum_msb << 8 | hum_lsb;
 
-	int32_t var1;
-	int32_t var2;
-	int32_t var3;
-	int32_t var4;
-	int32_t var5;
-	int32_t var6;
-	int32_t temp;
+	int32_t var1, var2, var3, var4, var5, var6, temp;
 
 	temp = ((_calib_dev.tfine * 5) + 128) / 256;
 	var1 = (hum_raw - _calib_hum.h1 * 16) - ((temp *_calib_hum.h3) / 100 / 2);
@@ -165,6 +180,16 @@ uint8_t ClosedCube_BME680::setOversampling(ClosedCube_BME680_Oversampling humidi
 	Wire.write(humidity);
 	Wire.write(BME680_REG_CTRL_MEAS);
 	Wire.write(ctrl_meas.rawData);
+	return Wire.endTransmission();
+}
+
+uint8_t ClosedCube_BME680::setIIRFilter(ClosedCube_BME680_IIRFilter filter) {
+	ClosedCube_BME680_Config_Register config;
+	config.filter = filter;
+
+	Wire.beginTransmission(_address);
+	Wire.write(BME680_REG_CONFIG);
+	Wire.write(config.rawData);
 	return Wire.endTransmission();
 }
 

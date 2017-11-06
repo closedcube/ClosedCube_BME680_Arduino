@@ -63,6 +63,14 @@ enum ClosedCube_BME680_Oversampling {
 	BME680_OVERSAMPLING_X16		= 0x05
 };
 
+typedef union {
+	uint8_t rawData;
+	struct {
+		uint8_t reserved1 : 3;
+		uint8_t filter	  : 3;
+		uint8_t reserved2 : 2;
+	};
+} ClosedCube_BME680_Config_Register;
 
 typedef union {
 	uint8_t rawData;
@@ -94,32 +102,20 @@ typedef union {
 
 
 struct bme680_cal_temp {
-	uint16_t t1;
-	uint16_t t2;
+	uint16_t t1, t2;
 	uint8_t t3;
 };
 
 struct bme680_cal_pres {
 	uint16_t p1;
-	int16_t p2;
-	int8_t p3;
-	int16_t p4;
-	int16_t p5;
-	int8_t p6;
-	int8_t p7;
-	int16_t p8;
-	int16_t p9;
-	uint8_t p10;
+	int16_t p2, p4, p5, p8, p9;
+	int8_t p3, p6, p7, p10;
 };
 
 struct bme680_cal_hum {
-	uint16_t h1;
-	uint16_t h2;
-	int8_t h3;
-	int8_t h4;
-	int8_t h5;
+	uint16_t h1, h2;
+	int8_t h3, h4, h5, h7;
 	uint8_t h6;
-	int8_t h7;
 };
 
 struct bme680_cal_dev {
@@ -143,11 +139,12 @@ public:
 	ClosedCube_BME680_Status readStatus();
 
 	uint8_t setOversampling(ClosedCube_BME680_Oversampling humidity, ClosedCube_BME680_Oversampling temperature, ClosedCube_BME680_Oversampling pressure);
-	
+	uint8_t setIIRFilter(ClosedCube_BME680_IIRFilter filter);
 
 	float readTemperature();
 	float readHumidity();
 	float readPressure();
+	float readGasResistance();
 
 private:
 	uint8_t _address;
@@ -157,6 +154,16 @@ private:
 	struct bme680_cal_pres _calib_pres;
 	struct bme680_cal_hum _calib_hum;
 	struct bme680_cal_dev _calib_dev;
+
+	const uint32_t lookupTable1[16] = { 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
+										2126008810, 2147483647, 2130303777, 2147483647, 2147483647,
+										2143188679, 2136746228, 2147483647, 2126008810, 2147483647, 
+										2147483647 };
+
+	const uint32_t lookupTable2[16] = { 4096000000, 2048000000, 1024000000, 512000000, 255744255,
+										127110228, 64000000, 32258064, 16016016, 8000000, 
+										4000000, 2000000, 1000000, 500000, 250000,
+		                                125000 };
 
 	void loadCalData();
 
