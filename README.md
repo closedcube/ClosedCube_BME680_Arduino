@@ -8,13 +8,15 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 ---
 
 **Features:**
- - Temperature, Humidity, Pressure and Gas measurments
+ - Temperature, Humidity, Pressure and Gas*** measurments
  - Low Supply Current
  - I2C digital interface with address either 0x76 or 0x77
  - Supports 3.3V and 5V buses
  - Wide supply voltage range from 2.2 to 5.5 V 
  - Power up with [Texas Instruments TPS62743](http://www.ti.com/product/TPS62743) Ultra Low Power Buck Converter
  - Optional 1.8V output up to 300mA
+ 
+ (*** - work in progress)
  
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic1.jpg)
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic2.jpg)
