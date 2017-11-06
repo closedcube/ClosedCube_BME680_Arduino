@@ -8,22 +8,14 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 ---
 
 **Features:**
-
- - Temperature, Himidit, Pressure and Gas sensors in the same package
+ - Temperature, Humidity, Pressure and Gas measurments
  - Low Supply Current
- - Detected Gases includes:
-   -  Volatile Organic Compounds (VOC) from paints (such as formaldehyde)
-   -  lacquers
-   -  paint strippers
-   -  cleaning supplies
-   -  furnishings
-   -  office equipment
-   -  glues
-   -  adhesives
-   -  alcohol
  - I2C digital interface with address either 0x76 or 0x77
- - Operating temperature range: -40C/-40F .. +85C/185F
-
+ - Supports 3.3V and 5V buses
+ - Wide supply voltage range from 2.2 to 5.5 V 
+ - power up with [Texas Instruments TPS62743](http://www.ti.com/product/TPS62743) Ultra Low Power Buck Converter
+ - optional 1.8V output up to 300mA
+ 
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic1.jpg)
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic2.jpg)
 ![ClosedCube B012_BME680](http://images.closedcube.uk/B013_BME680/B013_BME680_GitHub_Pic10.jpg)
