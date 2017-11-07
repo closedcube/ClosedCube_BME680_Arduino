@@ -34,6 +34,7 @@ THE SOFTWARE.
 #define _CLOSEDCUBE_BME680_h
 #include <Arduino.h>
 
+#define BME680_REG_CTRL_GAS		0x71
 #define BME680_REG_CTRL_HUM		0x72
 #define BME680_REG_CTRL_MEAS	0x74
 #define BME680_REG_CONFIG		0x75
@@ -92,6 +93,15 @@ typedef union {
 typedef union {
 	uint8_t rawData;
 	struct {
+		uint8_t nb_conv  : 4;
+		uint8_t run_gas  : 1;
+		uint8_t reserved : 3;
+	};
+} ClosedCube_BME680_Heater_Profile;
+
+typedef union {
+	uint8_t rawData;
+	struct {
 		uint8_t gasMeasurementIndex : 3;
 		uint8_t unused : 2;
 		uint8_t measuringStatusFlag : 1;
@@ -120,7 +130,17 @@ struct bme680_cal_hum {
 
 struct bme680_cal_dev {
 	int32_t tfine;
+	uint8_t amb_temp;
+	uint8_t res_heat_range;
+	int8_t res_heat_val;
+	int8_t range_sw_err;
 };
+
+struct bme680_cal_gas {
+	int8_t gh1, gh3;
+	int16_t gh2;
+};
+
 
 class ClosedCube_BME680 {
 
@@ -140,11 +160,13 @@ public:
 
 	uint8_t setOversampling(ClosedCube_BME680_Oversampling humidity, ClosedCube_BME680_Oversampling temperature, ClosedCube_BME680_Oversampling pressure);
 	uint8_t setIIRFilter(ClosedCube_BME680_IIRFilter filter);
+	uint8_t setGasOn(uint16_t heaterTemperature, uint16_t heaterDuration);
+	uint8_t setGasOff();
 
 	float readTemperature();
 	float readHumidity();
 	float readPressure();
-	float readGasResistance();
+	uint32_t readGasResistance();
 
 private:
 	uint8_t _address;
@@ -154,6 +176,7 @@ private:
 	struct bme680_cal_pres _calib_pres;
 	struct bme680_cal_hum _calib_hum;
 	struct bme680_cal_dev _calib_dev;
+	struct bme680_cal_gas _calib_gas;
 
 	const uint32_t lookupTable1[16] = { 2147483647, 2147483647, 2147483647, 2147483647, 2147483647,
 										2126008810, 2147483647, 2130303777, 2147483647, 2147483647,
@@ -165,10 +188,13 @@ private:
 										4000000, 2000000, 1000000, 500000, 250000,
 		                                125000 };
 
-	void loadCalData();
+	uint8_t loadCalData();
 
 	uint8_t readByte(uint8_t cmd);
 	uint8_t changeMode(uint8_t mode);
+
+	uint8_t calculateHeaterDuration(uint16_t heaterDuration);
+	uint8_t calculateHeaterTemperature(uint16_t heaterTemperature);
 };
 
 

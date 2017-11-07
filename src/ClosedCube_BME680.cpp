@@ -79,23 +79,54 @@ ClosedCube_BME680_Status ClosedCube_BME680::readStatus() {
 	return status;
 }
 
-float ClosedCube_BME680::readGasResistance() {
+
+uint8_t ClosedCube_BME680::setGasOn(uint16_t heaterTemperature, uint16_t heaterDuration) {
+	uint8_t result;
+
+	Wire.beginTransmission(_address);
+	Wire.write(0x5A);
+	Wire.write(calculateHeaterTemperature(heaterTemperature));
+	Wire.write(0x64);
+	Wire.write(calculateHeaterDuration(heaterDuration));
+	result = Wire.endTransmission();
+
+	ClosedCube_BME680_Heater_Profile profile;
+	profile.nb_conv = 0;
+	profile.run_gas = 1;
+
+	Wire.beginTransmission(_address);
+	Wire.write(BME680_REG_CTRL_GAS);
+	Wire.write(profile.rawData);
+	return result & Wire.endTransmission();
+
+}
+
+uint8_t ClosedCube_BME680::setGasOff() {
+	ClosedCube_BME680_Heater_Profile profile;
+	profile.nb_conv = 0;
+	profile.run_gas = 0;
+
+	Wire.beginTransmission(_address);
+	Wire.write(BME680_REG_CTRL_GAS);
+	Wire.write(profile.rawData);
+	return Wire.endTransmission();
+}
+
+
+uint32_t ClosedCube_BME680::readGasResistance() {
 	uint8_t gas_msb = readByte(0x25);
 	uint8_t gas_lsb = readByte(0x26);
 	uint8_t gas_range = readByte(0x2B);
 
 	uint16_t gas_raw = gas_msb << 8 | gas_lsb;
 
-	int64_t var1;
-	int64_t var2;
-	int64_t var3;
+	int64_t var1, var2, var3;
 
-	//var1 = (int64_t)((1340 + (5 * (int64_t)dev->calib.range_sw_err)) * ((int64_t)lookupTable1[gas_range])) / 65536;
-	//var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
-	//var3 = (((int64_t)lookupTable2[gas_range] * (int64_t)var1) / 512);
+	var1 = (int64_t)((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_range])) / 65536;
+	var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
+	var3 = (((int64_t)lookupTable2[gas_range] * (int64_t)var1) / 512);
 
-	//return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
-	return 0.0f;
+	return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
 }
 
 float ClosedCube_BME680::readHumidity() {
@@ -193,6 +224,42 @@ uint8_t ClosedCube_BME680::setIIRFilter(ClosedCube_BME680_IIRFilter filter) {
 	return Wire.endTransmission();
 }
 
+uint8_t ClosedCube_BME680::calculateHeaterTemperature(uint16_t heaterTemperature) {
+	int32_t var1, var2, var3, var4, var5;
+	int32_t heatr_res_x100;
+
+	if (heaterTemperature < 200)
+		heaterTemperature = 200;
+	else if (heaterTemperature > 400)
+		heaterTemperature = 400;
+
+	var1 = (((int32_t)_calib_dev.amb_temp * _calib_gas.gh3) / 1000) * 256;
+	var2 = (_calib_gas.gh1 + 784) * (((((_calib_gas.gh2 + 154009) * heaterTemperature * 5) / 100) + 3276800) / 10);
+	var3 = var1 + (var2 / 2);
+	var4 = (var3 / (_calib_dev.res_heat_range + 4));
+	var5 = (131 * _calib_dev.res_heat_val) + 65536;
+	heatr_res_x100 = (int32_t)(((var4 / var5) - 250) * 34);
+	return (uint8_t)((heatr_res_x100 + 50) / 100);
+}
+
+uint8_t ClosedCube_BME680::calculateHeaterDuration(uint16_t heaterDuration)
+{
+	uint8_t factor = 0;
+	uint8_t durval;
+
+	if (heaterDuration >= 0xfc0) {
+		durval = 0xff;
+	} else {
+		while (heaterDuration > 0x3F) {
+			heaterDuration = heaterDuration / 4;
+			factor += 1;
+		}
+		durval = (uint8_t)(heaterDuration + (factor * 64));
+	}
+
+	return durval;
+}
+
 uint8_t ClosedCube_BME680::readByte(uint8_t cmd) {
 	Wire.beginTransmission(_address);
 	Wire.write(cmd);
@@ -202,7 +269,8 @@ uint8_t ClosedCube_BME680::readByte(uint8_t cmd) {
 	Wire.read();
 }
 
-void ClosedCube_BME680::loadCalData() {
+
+uint8_t ClosedCube_BME680::loadCalData() {
 	uint8_t cal1[25];
 	uint8_t cal2[16];
 
@@ -243,5 +311,13 @@ void ClosedCube_BME680::loadCalData() {
 	_calib_pres.p9 = cal1[22] << 8 | cal1[21];
 	_calib_pres.p10 = cal1[23];
 
+	_calib_gas.gh1 = cal2[14];
+	_calib_gas.gh2 = cal2[12] << 8 | cal2[13];
+	_calib_gas.gh3 = cal2[15];
 
+	_calib_dev.res_heat_range = readByte(0x02);
+	_calib_dev.res_heat_val = readByte(0x00);
+	_calib_dev.range_sw_err = readByte(0x04);
+
+	return 0;
 }
