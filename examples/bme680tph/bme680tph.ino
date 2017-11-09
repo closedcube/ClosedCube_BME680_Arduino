@@ -52,7 +52,7 @@ void loop()
 
 		Serial.print("T=");
 		Serial.print(temp);
-		Serial.print("C, H=");
+		Serial.print("C, RH=");
 		Serial.print(hum);
 		Serial.print("%, P=");
 		Serial.print(pres);

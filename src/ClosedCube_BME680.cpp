@@ -129,7 +129,7 @@ uint32_t ClosedCube_BME680::readGasResistance() {
 	return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
 }
 
-float ClosedCube_BME680::readHumidity() {
+double ClosedCube_BME680::readHumidity() {
 	uint8_t hum_msb = readByte(0x25);
 	uint8_t hum_lsb = readByte(0x26);
 
@@ -150,7 +150,7 @@ float ClosedCube_BME680::readHumidity() {
 	return (var3 + var6) / 1024 / 4096.0f;
 }
 
-float ClosedCube_BME680::readPressure() {
+double ClosedCube_BME680::readPressure() {
 	uint8_t pres_msb = readByte(0x1F);
 	uint8_t pres_lsb = readByte(0x20);
 	uint8_t pres_xlsb = readByte(0x21);
@@ -181,7 +181,7 @@ float ClosedCube_BME680::readPressure() {
 	return pres_raw / 100.0f;
 }
 
-float ClosedCube_BME680::readTemperature() {
+double ClosedCube_BME680::readTemperature() {
 	uint8_t temp_msb = readByte(0x22);
 	uint8_t temp_lsb = readByte(0x23);
 	uint8_t temp_xlsb = readByte(0x24);

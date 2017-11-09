@@ -163,9 +163,9 @@ public:
 	uint8_t setGasOn(uint16_t heaterTemperature, uint16_t heaterDuration);
 	uint8_t setGasOff();
 
-	float readTemperature();
-	float readHumidity();
-	float readPressure();
+	double readTemperature();
+	double readHumidity();
+	double readPressure();
 	uint32_t readGasResistance();
 
 private:
