@@ -26,7 +26,7 @@ void setup()
 	Wire.begin();
 
 	Serial.begin(9600);
-	Serial.println("ClosedCube BME680 ([T]empeature,[P]ressure,[H]umidity) Arduino Test");
+	Serial.println("ClosedCube BME680 ([T]empeature,[P]ressure,[H]umidity,[G]as) Arduino Test");
 
 	bme680.init(0x77); // I2C address: 0x76 or 0x77
 	bme680.reset();
@@ -37,6 +37,7 @@ void setup()
 	// oversampling: humidity = x1, temperature = x2, pressure = x16
 	bme680.setOversampling(BME680_OVERSAMPLING_X1, BME680_OVERSAMPLING_X2, BME680_OVERSAMPLING_X16);
 	bme680.setIIRFilter(BME680_FILTER_3);
+	bme680.setGasOn(300, 100); // 300 degree Celsius and 100 milliseconds 
 
 	bme680.setForcedMode();
 }
@@ -57,10 +58,16 @@ void loop()
 		Serial.print("%, P=");
 		Serial.print(pres);
 		Serial.print("hPa");
+			
+		uint32_t gas = bme680.readGasResistance();
+
+		Serial.print(", G=");
+		Serial.print(gas);
+		Serial.print(" Ohms");
 
 		Serial.println();
 
-		delay(1000); // let's do nothing and wait a bit before perform next measurements
+		delay(2000); // let's do nothing and wait a bit before perform next measurements
 
 		bme680.setForcedMode();
 	} else {

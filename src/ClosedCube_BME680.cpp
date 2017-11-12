@@ -114,17 +114,26 @@ uint8_t ClosedCube_BME680::setGasOff() {
 
 
 uint32_t ClosedCube_BME680::readGasResistance() {
-	uint8_t gas_msb = readByte(0x25);
-	uint8_t gas_lsb = readByte(0x26);
-	uint8_t gas_range = readByte(0x2B);
+	typedef union {
+		uint8_t raw;
+		union {
+			uint8_t range : 2;
+			uint8_t lsb : 6;
+		};
+	} gas_lsb_t;
 
-	uint16_t gas_raw = gas_msb << 8 | gas_lsb;
+	gas_lsb_t gas_lsb;
+
+	uint8_t gas_msb = readByte(0x2A);
+	gas_lsb.raw = readByte(0x2B);
+
+	uint16_t gas_raw = gas_msb << 8 | gas_lsb.lsb;
 
 	int64_t var1, var2, var3;
 
-	var1 = (int64_t)((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_range])) / 65536;
+	var1 = (int64_t)((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_lsb.range])) / 65536;
 	var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
-	var3 = (((int64_t)lookupTable2[gas_range] * (int64_t)var1) / 512);
+	var3 = (((int64_t)lookupTable2[gas_lsb.range] * (int64_t)var1) / 512);
 
 	return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
 }
@@ -132,22 +141,30 @@ uint32_t ClosedCube_BME680::readGasResistance() {
 double ClosedCube_BME680::readHumidity() {
 	uint8_t hum_msb = readByte(0x25);
 	uint8_t hum_lsb = readByte(0x26);
-
 	uint16_t hum_raw = hum_msb << 8 | hum_lsb;
 
-	int32_t var1, var2, var3, var4, var5, var6, temp;
+	int32_t var1, var2, var3, var4, var5, var6, temp, calc_hum;
 
-	temp = ((_calib_dev.tfine * 5) + 128) / 256;
-	var1 = (hum_raw - _calib_hum.h1 * 16) - ((temp *_calib_hum.h3) / 100 / 2);
-	var2 = (_calib_hum.h2 * ((temp * _calib_hum.h4 / 100)
-			+ (((temp * (temp * _calib_hum.h5 / 100)) / 64) / 100) + (1 * 16384))) / 1024;
+	temp = (((int32_t)_calib_dev.tfine * 5) + 128) / 256;
+	var1 = (int32_t)(hum_raw - ((int32_t)((int32_t)_calib_hum.h1 * 16)))
+		- (((temp * (int32_t)_calib_hum.h3) / ((int32_t)100)) / 2);
+	var2 = ((int32_t)_calib_hum.h2
+		* (((temp * (int32_t)_calib_hum.h4) / ((int32_t)100))
+			+ (((temp * ((temp * (int32_t)_calib_hum.h5) / ((int32_t)100))) / 64)
+				/ ((int32_t)100)) + (int32_t)(1 * 16384))) / 1024;
 	var3 = var1 * var2;
-	var4 = _calib_hum.h6 * 128;
-	var4 = ((var4)+((temp * _calib_hum.h7) / 100)) / 16;
+	var4 = (int32_t)_calib_hum.h6 * 128;
+	var4 = ((var4)+((temp * (int32_t)_calib_hum.h7) / ((int32_t)100))) / 16;
 	var5 = ((var3 / 16384) * (var3 / 16384)) / 1024;
 	var6 = (var4 * var5) / 2;
+	calc_hum = (((var3 + var6) / 1024) * ((int32_t)1000)) / 4096 / 1000.0;
 
-	return (var3 + var6) / 1024 / 4096.0f;
+	if (calc_hum > 100)
+		calc_hum = 100;
+	else if (calc_hum < 0)
+		calc_hum = 0;
+	
+	return calc_hum;
 }
 
 double ClosedCube_BME680::readPressure() {
@@ -157,28 +174,27 @@ double ClosedCube_BME680::readPressure() {
 
 	uint32_t pres_raw = ((uint32_t)pres_msb << 12) | ((uint32_t)pres_lsb << 4) | ((uint32_t)pres_xlsb >> 4);
 
-	int32_t var1;
-	int32_t var2;
-	int32_t var3;
+	int32_t var1, var2, var3, calc_pres;
 
-	var1 = _calib_dev.tfine / 2 - 64000;
+	var1 = (((int32_t)_calib_dev.tfine) / 2) - 64000;
 	var2 = ((var1 / 4) * (var1 / 4)) / 2048;
-	var2 = (var2 * _calib_pres.p6) / 4;
-	var2 = var2 + ((var1 * _calib_pres.p5) * 2);
-	var2 = (var2 / 4) + (_calib_pres.p4 * 65536);
+	var2 = ((var2) * (int32_t)_calib_pres.p6) / 4;
+	var2 = var2 + ((var1 * (int32_t)_calib_pres.p5) * 2);
+	var2 = (var2 / 4) + ((int32_t)_calib_pres.p4 * 65536);
 	var1 = ((var1 / 4) * (var1 / 4)) / 8192;
-	var1 = (((var1) * _calib_pres.p3 * 32) / 8) + ((_calib_pres.p2 * var1) / 2);
+	var1 = (((var1) * ((int32_t)_calib_pres.p3 * 32)) / 8) + (((int32_t)_calib_pres.p2 * var1) / 2);
 	var1 = var1 / 262144;
-	var1 = ((32768 + var1) * _calib_pres.p1) / 32768;
-	pres_raw = 1048576 - pres_raw;
-	pres_raw = (pres_raw - (var2 / 4096)) * (3125);
-	pres_raw = ((pres_raw / var1) * 2);
-	var1 = ((int32_t)_calib_pres.p9 * (int32_t)(((pres_raw / 8) * (pres_raw / 8)) / 8192)) / 4096;
-	var2 = ((int32_t)(pres_raw / 4) * (int32_t)_calib_pres.p8) / 8192;
-	var3 = ((pres_raw / 256) * (pres_raw / 256) * (pres_raw / 256) * _calib_pres.p10) / 131072;
-	pres_raw = pres_raw+((var1 + var2 + var3 + (_calib_pres.p7 * 128)) / 16);
+	var1 = ((32768 + var1) * (int32_t)_calib_pres.p1) / 32768;
+	calc_pres = (int32_t)(1048576 - pres_raw);
+	calc_pres = (int32_t)((calc_pres - (var2 / 4096)) * (3125));
+	calc_pres = ((calc_pres / var1) * 2);
+	var1 = ((int32_t)_calib_pres.p9 * (int32_t)(((calc_pres / 8) * (calc_pres / 8)) / 8192)) / 4096;
+	var2 = ((int32_t)(calc_pres / 4) * (int32_t)_calib_pres.p8) / 8192;
+	var3 = ((int32_t)(calc_pres / 256) * (int32_t)(calc_pres / 256) * (int32_t)(calc_pres / 256)
+		* (int32_t)_calib_pres.p10) / 131072;
+	calc_pres = (int32_t)(calc_pres)+((var1 + var2 + var3 + ((int32_t)_calib_pres.p7 * 128)) / 16);
 
-	return pres_raw / 100.0f;
+	return calc_pres / 100.0;
 }
 
 double ClosedCube_BME680::readTemperature() {
@@ -188,16 +204,16 @@ double ClosedCube_BME680::readTemperature() {
 
 	uint32_t temp_raw = ((uint32_t)temp_msb << 12) | ((uint32_t)temp_lsb << 4) | ((uint32_t)temp_xlsb >> 4);
 
-	uint32_t var1;
-	uint32_t var2;
-	uint32_t var3;
+	uint32_t var1, var2, var3, calc_temp;
 
-	var1 = (temp_raw / 8) - (_calib_temp.t1 * 2);
-	var2 = (var1 * _calib_temp.t2) / 2048;
+	var1 = ((int32_t)temp_raw / 8) - ((int32_t)_calib_temp.t1 * 2);
+	var2 = (var1 * (int32_t)_calib_temp.t2) / 2048;
 	var3 = ((var1 / 2) * (var1 / 2)) / 4096;
-	var3 = ((var3) * (_calib_temp.t3 * 16)) / 16384;
-	_calib_dev.tfine = var2 + var3;
-	return (((_calib_dev.tfine * 5) + 128) / 256) / 100.0f;
+	var3 = ((var3) * ((int32_t)_calib_temp.t3 * 16)) / 16384;
+	_calib_dev.tfine = (int32_t)(var2 + var3);
+	calc_temp =(int16_t)(((_calib_dev.tfine * 5) + 128) / 256);
+
+	return calc_temp / 100.0;
 }
 
 uint8_t ClosedCube_BME680::setOversampling(ClosedCube_BME680_Oversampling humidity, ClosedCube_BME680_Oversampling temperature, ClosedCube_BME680_Oversampling pressure) {	
