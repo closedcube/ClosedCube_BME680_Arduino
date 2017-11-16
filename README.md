@@ -8,7 +8,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 ---
 
 **Features:**
- - Temperature, Humidity, Pressure and Gas measurments
+ - Temperature, Humidity, Pressure and Gas measurements
  - Low Supply Current
  - I2C digital interface with address either 0x76 or 0x77
  - Supports 3.3V and 5V buses
