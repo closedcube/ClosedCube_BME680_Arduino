@@ -216,6 +216,12 @@ double ClosedCube_BME680::readTemperature() {
 	return calc_temp / 100.0;
 }
 
+float ClosedCube_BME680::readAltitude() {
+      float atmospheric = readPressure() / 100.0F;
+
+      return 44330.0 * (1.0 - pow(atmospheric / 1013.25, 0.1903));
+}
+
 uint8_t ClosedCube_BME680::setOversampling(ClosedCube_BME680_Oversampling humidity, ClosedCube_BME680_Oversampling temperature, ClosedCube_BME680_Oversampling pressure) {	
 	ClosedCube_BME680_Ctrl_TP_Register ctrl_meas;
 	ctrl_meas.osrs_t = temperature;
