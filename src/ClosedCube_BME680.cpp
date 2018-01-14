@@ -46,7 +46,10 @@ void ClosedCube_BME680::init(uint8_t address) {
 }
 
 uint8_t ClosedCube_BME680::reset() {
-	return readByte(BME680_REG_RESET);
+	Wire.beginTransmission(_address);
+	Wire.write(BME680_REG_RESET);
+	Wire.write(BME680_SOFT_RESET_CMD);
+	return Wire.endTransmission();
 }
 
 uint8_t ClosedCube_BME680::getChipID() {
