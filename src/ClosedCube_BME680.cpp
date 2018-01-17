@@ -285,7 +285,7 @@ uint8_t ClosedCube_BME680::readByte(uint8_t cmd) {
 	Wire.endTransmission();
 
 	Wire.requestFrom(_address, (uint8_t)1);
-	Wire.read();
+	return Wire.read();
 }
 
 
