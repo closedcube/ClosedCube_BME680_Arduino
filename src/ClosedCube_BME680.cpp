@@ -207,14 +207,15 @@ double ClosedCube_BME680::readTemperature() {
 
 	uint32_t temp_raw = ((uint32_t)temp_msb << 12) | ((uint32_t)temp_lsb << 4) | ((uint32_t)temp_xlsb >> 4);
 
-	uint32_t var1, var2, var3, calc_temp;
+	int64_t var1, var2, var3;
+	int16_t calc_temp;
 
 	var1 = ((int32_t)temp_raw / 8) - ((int32_t)_calib_temp.t1 * 2);
 	var2 = (var1 * (int32_t)_calib_temp.t2) / 2048;
 	var3 = ((var1 / 2) * (var1 / 2)) / 4096;
 	var3 = ((var3) * ((int32_t)_calib_temp.t3 * 16)) / 16384;
 	_calib_dev.tfine = (int32_t)(var2 + var3);
-	calc_temp =(int16_t)(((_calib_dev.tfine * 5) + 128) / 256);
+	calc_temp = (int16_t)(((_calib_dev.tfine * 5) + 128) / 256);
 
 	return calc_temp / 100.0;
 }
