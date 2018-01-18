@@ -200,6 +200,11 @@ double ClosedCube_BME680::readPressure() {
 	return calc_pres / 100.0;
 }
 
+double ClosedCube_BME680::readAltitude(double SEALEVEL_PRESSURE) {
+    double atmospheric = readPressure();
+    return 44330.0 * (1.0 - pow(atmospheric / SEALEVEL_PRESSURE, 0.1903));
+}
+
 double ClosedCube_BME680::readTemperature() {
 	uint8_t temp_msb = readByte(0x22);
 	uint8_t temp_lsb = readByte(0x23);
