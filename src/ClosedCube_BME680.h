@@ -167,6 +167,7 @@ public:
 	double readTemperature();
 	double readHumidity();
 	double readPressure();
+	double readAltitude(double SEALEVEL_PRESSURE);
 	uint32_t readGasResistance();
 
 private:
