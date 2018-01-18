@@ -21,6 +21,8 @@ MIT License
 
 ClosedCube_BME680 bme680;
 
+#define SEALEVEL_PRESSURE 1013.25 //Set 1013.25 as your local sea level pressure
+
 void setup()
 {
 	Wire.begin();
@@ -50,18 +52,20 @@ void loop()
 		double temp = bme680.readTemperature();
 		double pres = bme680.readPressure();
 		double hum = bme680.readHumidity();
-
+                double alt = bme680.readAltitude(SEALEVEL_PRESSURE);
+		
 		Serial.print("T=");
 		Serial.print(temp);
 		Serial.print("C, RH=");
 		Serial.print(hum);
 		Serial.print("%, P=");
 		Serial.print(pres);
-		Serial.print("hPa");
-			
+		Serial.print("hPa, Alt=");
+		Serial.print(alt);
+
 		uint32_t gas = bme680.readGasResistance();
 
-		Serial.print(", G=");
+		Serial.print("meters, G=");
 		Serial.print(gas);
 		Serial.print(" Ohms");
 
