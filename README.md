@@ -25,16 +25,16 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 
 [![](http://images.closedcube.uk/logo/github/amazon.png)](https://www.tindie.com/stores/closedcube/)
 
-| Region  | Link |
+| Region  | Link for 1 pcs | Link for 2 pcs |
 | ------------- | ------------- |
-| UK | TBD |
-| Germany (DE) | TBD |
-| France (FR) | TBD |
-| Italy (IT) | TBD |
-| Spain (ES) | TBD |
-| USA | TBD |
-| Canada | TBD |
-| Mexico | TBD |
+| UK | https://www.amazon.co.uk/dp/B077MSD174 | https://www.amazon.co.uk/dp/B077MG2S3T |
+| Germany (DE) | TBD | TBD |
+| France (FR) | TBD | TBD |
+| Italy (IT) | TBD | TBD |
+| Spain (ES) | TBD | TBD |
+| USA | TBD | TBD |
+| Canada | TBD | TBD |
+| Mexico | TBD | TBD |
 
 
 [![](http://images.closedcube.uk/logo/github/ebay.gif)](http://www.ebay.co.uk/itm/182877251201)
