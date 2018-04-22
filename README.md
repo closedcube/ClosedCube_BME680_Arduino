@@ -28,10 +28,10 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 | Region  | Link for 1 pcs (0x77) | Link for 2 pcs (0x76 and 0x77)|
 | ------------- | ------------- | ------------- |
 | UK | https://www.amazon.co.uk/dp/B077MSD174 | https://www.amazon.co.uk/dp/B077MG2S3T |
-| Germany (DE) | TBD | TBD |
-| France (FR) | TBD | TBD |
-| Italy (IT) | TBD | TBD |
-| Spain (ES) | TBD | TBD |
+| Germany (DE) |  https://www.amazon.de/dp/B077MSD174 | https://www.amazon.de/dp/B077MG2S3T |
+| France (FR) |  https://www.amazon.fr/dp/B077MSD174 | https://www.amazon.fr/dp/B077MG2S3T |
+| Italy (IT) |  https://www.amazon.it/dp/B077MSD174 | https://www.amazon.it/dp/B077MG2S3T |
+| Spain (ES) |  https://www.amazon.es/dp/B077MSD174 | https://www.amazon.es/dp/B077MG2S3T |
 | USA | TBD | TBD |
 | Canada | TBD | TBD |
 | Mexico | TBD | TBD |
@@ -41,10 +41,11 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 
 | Region  | Link |
 | ------------- | ------------- |
-| Europe,Asia,Oceania | https://www.ebay.co.uk/itm/182877251201  |
-| USA  | https://www.ebay.com/itm//183023255923 |
+| Europe,Asia,Oceania | https://www.ebay.co.uk/itm/ClosedCube-BME680-Environment-T-H-P-Gas-Sensor-w-1-8V-Out-Breakout-Board/182877251201 <br/>https://www.ebay.co.uk/itm/182877251201  |
+| USA  | TBD |
 
 
 [![](http://images.closedcube.uk/logo/github/tindie.png)](https://www.tindie.com/stores/closedcube/)
 
 https://www.tindie.com/products/10694/
+<br/>https://www.tindie.com/products/closedcube/bme680-environment-sensor-with-ultra-low-18v-out/
