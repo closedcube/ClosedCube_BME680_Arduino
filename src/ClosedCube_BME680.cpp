@@ -29,9 +29,9 @@ THE SOFTWARE.
 */
 
 
-#include <Wire.h>
-#include "ClosedCube_BME680.h"
 
+#include "ClosedCube_BME680.h"
+#include <Wire.h>
 
 
 ClosedCube_BME680::ClosedCube_BME680() {
