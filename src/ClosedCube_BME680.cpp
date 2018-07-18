@@ -146,7 +146,7 @@ double ClosedCube_BME680::readHumidity() {
 	uint8_t hum_lsb = readByte(0x26);
 	uint16_t hum_raw = hum_msb << 8 | hum_lsb;
 
-	int32_t var1, var2, var3, var4, var5, var6, temp, calc_hum;
+	double var1, var2, var3, var4, var5, var6, temp, calc_hum;
 
 	temp = (((int32_t)_calib_dev.tfine * 5) + 128) / 256;
 	var1 = (int32_t)(hum_raw - ((int32_t)((int32_t)_calib_hum.h1 * 16)))
