@@ -28,7 +28,7 @@ This is breakout board for [Bosch Sensortec BME680](https://www.bosch-sensortec.
 | Region  | Link for 1 pcs | Link for 2 pcs (0x76 and 0x77)|
 | ------------- | ------------- | ------------- |
 | UK | https://www.amazon.co.uk/ClosedCube-Environment-Temperature-Ultra-Low-Pre-Soldered/dp/B07WF56SFJ | TBD |
-| Germany (DE) |  TBD | https://www.amazon.de/dp/B077MG2S3T |
+| Germany (DE) |  TBD | TBD |
 | France (FR) |  TBD | TBD |
 | Italy (IT) |  TBD | TBD |
 | Spain (ES) |  TBD | TBD |
