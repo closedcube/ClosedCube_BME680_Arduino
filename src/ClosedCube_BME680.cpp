@@ -144,49 +144,6 @@ uint32_t ClosedCube_BME680::readGasResistance() {
 }
 
 
-uint8_t ClosedCube_BME680::readLookup2Index() {
-	typedef union {
-		uint8_t raw;
-		struct {
-			uint8_t range : 4;
-                        uint8_t heat_stab_r: 1;
-                        uint8_t gas_valid_r: 1;
-			uint8_t lsb : 2;
-		};
-	} gas_lsb_t;
-        
-        gas_lsb_t gas_lsb;
-        
-        gas_lsb.raw = readByte(0x2B);
-
-	return gas_lsb.range;
-}
-
-
-
-uint16_t ClosedCube_BME680::readGasRawResistance() {
-	typedef union {
-		uint8_t raw;
-		struct {
-			uint8_t range : 4;
-                        uint8_t heat_stab_r: 1;
-                        uint8_t gas_valid_r: 1;
-			uint8_t lsb : 2;
-		};
-	} gas_lsb_t;
-
-	gas_lsb_t gas_lsb;
-
-	uint8_t gas_msb = readByte(0x2A);
-	gas_lsb.raw = readByte(0x2B);
-
-	uint16_t gas_raw = ((uint16_t)gas_msb) << 2 | (uint16_t)gas_lsb.lsb;
-
-	
-
-	return (uint16_t)(gas_raw);
-}
-
 double ClosedCube_BME680::readHumidity() {
 	uint8_t hum_msb = readByte(0x25);
 	uint8_t hum_lsb = readByte(0x26);
