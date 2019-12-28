@@ -103,11 +103,11 @@ typedef union {
 typedef union {
 	uint8_t rawData;
 	struct {
-		uint8_t gasMeasurementIndex : 3;
-		uint8_t unused : 2;
+		uint8_t gasMeasurementIndex : 4;
+		uint8_t unused : 1;
 		uint8_t measuringStatusFlag : 1;
 		uint8_t gasMeasuringStatusFlag : 1;
-		uint8_t newDataFlag : 2;
+		uint8_t newDataFlag : 1;
 	};
 } ClosedCube_BME680_Status;
 
