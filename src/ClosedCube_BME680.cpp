@@ -117,29 +117,33 @@ uint8_t ClosedCube_BME680::setGasOff() {
 
 
 uint32_t ClosedCube_BME680::readGasResistance() {
-	typedef union {
-		uint8_t raw;
-		union {
-			uint8_t range : 2;
-			uint8_t lsb : 6;
-		};
-	} gas_lsb_t;
 
-	gas_lsb_t gas_lsb;
+        ClosedCube_BME680_gas_r_lsb gas_r_lsb;
 
 	uint8_t gas_msb = readByte(0x2A);
-	gas_lsb.raw = readByte(0x2B);
+	gas_r_lsb.raw = readByte(0x2B);
+        
+       
+        uint16_t gas_raw = ((uint16_t)gas_msb) << 2 | (uint16_t)gas_r_lsb.lsb;
+          
+        int64_t var1, var2, var3;
 
-	uint16_t gas_raw = gas_msb << 8 | gas_lsb.lsb;
+        var1 = (int64_t)((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_r_lsb.range])) / 65536;
+        var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
+        var3 = (((int64_t)lookupTable2[gas_r_lsb.range] * (int64_t)var1) / 512);
 
-	int64_t var1, var2, var3;
-
-	var1 = (int64_t)((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_lsb.range])) / 65536;
-	var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
-	var3 = (((int64_t)lookupTable2[gas_lsb.range] * (int64_t)var1) / 512);
-
-	return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
+        return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
+        
 }
+
+ClosedCube_BME680_gas_r_lsb ClosedCube_BME680::read_gas_r_lsb() {
+
+        ClosedCube_BME680_gas_r_lsb gas_r_lsb;
+        gas_r_lsb.raw = readByte(0x2B);
+
+	return (gas_r_lsb);
+}
+
 
 double ClosedCube_BME680::readHumidity() {
 	uint8_t hum_msb = readByte(0x25);
@@ -207,7 +211,8 @@ double ClosedCube_BME680::readTemperature() {
 
 	uint32_t temp_raw = ((uint32_t)temp_msb << 12) | ((uint32_t)temp_lsb << 4) | ((uint32_t)temp_xlsb >> 4);
 
-	uint32_t var1, var2, var3, calc_temp;
+	int64_t var1, var2, var3;
+        int16_t calc_temp;
 
 	var1 = ((int32_t)temp_raw / 8) - ((int32_t)_calib_temp.t1 * 2);
 	var2 = (var1 * (int32_t)_calib_temp.t2) / 2048;
