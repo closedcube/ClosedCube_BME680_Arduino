@@ -36,13 +36,13 @@ THE SOFTWARE.
 
 #define BME680_REG_CTRL_GAS		0x71
 #define BME680_REG_CTRL_HUM		0x72
-#define BME680_REG_CTRL_MEAS	0x74
+#define BME680_REG_CTRL_MEAS	        0x74
 #define BME680_REG_CONFIG		0x75
 #define BME680_REG_RESET		0xE0
 #define BME680_REG_CHIPID		0xD0
-#define BME680_REG_MEAS_STATUS	0x1D
+#define BME680_REG_MEAS_STATUS	        0x1D
 
-#define BME680_SOFT_RESET_CMD	0xB6
+#define BME680_SOFT_RESET_CMD	        0xB6
 
 enum ClosedCube_BME680_IIRFilter {
 	BME680_FILTER_0		= 0x00,
@@ -77,7 +77,7 @@ typedef union {
 typedef union {
 	uint8_t rawData;
 	struct {
-		uint8_t mode : 2;
+		uint8_t mode   : 2;
 		uint8_t osrs_p : 3;
 		uint8_t osrs_t : 3;
 	};
@@ -103,14 +103,23 @@ typedef union {
 typedef union {
 	uint8_t rawData;
 	struct {
-		uint8_t gasMeasurementIndex : 3;
-		uint8_t unused : 2;
-		uint8_t measuringStatusFlag : 1;
+		uint8_t gasMeasurementIndex    : 4;
+		uint8_t unused                 : 1;
+		uint8_t measuringStatusFlag    : 1;
 		uint8_t gasMeasuringStatusFlag : 1;
-		uint8_t newDataFlag : 2;
+		uint8_t newDataFlag            : 1;
 	};
 } ClosedCube_BME680_Status;
 
+typedef union {
+		uint8_t raw;
+		struct {
+			uint8_t range          : 4;
+                        uint8_t heat_stab_r    : 1;
+                        uint8_t gas_valid_r    : 1;
+			uint8_t lsb            : 2;
+		};
+} ClosedCube_BME680_gas_r_lsb;
 
 struct bme680_cal_temp {
 	uint16_t t1, t2;
@@ -168,6 +177,9 @@ public:
 	double readHumidity();
 	double readPressure();
 	uint32_t readGasResistance();
+        
+        ClosedCube_BME680_gas_r_lsb read_gas_r_lsb();
+        
 
 private:
 	uint8_t _address;
