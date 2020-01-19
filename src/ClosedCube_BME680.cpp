@@ -336,12 +336,27 @@ uint8_t ClosedCube_BME680::loadCalData() {
 	_calib_pres.p10 = cal1[23];
 
 	_calib_gas.gh1 = cal2[14];
-	_calib_gas.gh2 = cal2[12] << 8 | cal2[13];
+	_calib_gas.gh2 = cal2[13] << 8 | cal2[12];
 	_calib_gas.gh3 = cal2[15];
 
-	_calib_dev.res_heat_range = readByte(0x02);
+	_calib_dev.res_heat_range = ( readByte(0x02) & B00110000 ) >> 4;
 	_calib_dev.res_heat_val = readByte(0x00);
 	_calib_dev.range_sw_err = readByte(0x04);
+        
+/*        
+        Serial.println("");
+        Serial.println("_calib_gas.gh1       = ");Serial.println(_calib_gas.gh1,DEC);
+        Serial.println("_calib_gas.gh2       = ");Serial.println(_calib_gas.gh2,DEC);
+        Serial.println("_calib_gas.gh2_bin   = ");Serial.println(_calib_gas.gh2,BIN);
+        Serial.println("_calib_gas.gh2_lb    = ");Serial.println(cal2[12],BIN);
+        Serial.println("_calib_gas.gh2_ub    = ");Serial.println(cal2[13],BIN);
+        Serial.println("_calib_gas.gh3       = ");Serial.println(_calib_gas.gh3,DEC);
+        
+        Serial.println("_calib_dev.res_heat_range       = ");Serial.println(_calib_dev.res_heat_range,DEC);
+        Serial.println("_calib_dev.res_heat_range_bin   = ");Serial.println(_calib_dev.res_heat_range,BIN);
+        Serial.println("_calib_dev.res_heat_val         = ");Serial.println(_calib_dev.res_heat_val,DEC);
+        
+*/
 
 	return 0;
 }
