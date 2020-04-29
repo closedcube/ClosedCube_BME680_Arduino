@@ -116,58 +116,73 @@ uint8_t ClosedCube_BME680::setGasOff() {
 }
 
 
-uint32_t ClosedCube_BME680::readGasResistance() {
-	typedef union {
-		uint8_t raw;
-		union {
-			uint8_t range : 2;
-			uint8_t lsb : 6;
-		};
-	} gas_lsb_t;
 
-	gas_lsb_t gas_lsb;
+uint32_t ClosedCube_BME680::readGasResistance() {
+
+        ClosedCube_BME680_gas_r_lsb gas_r_lsb;
 
 	uint8_t gas_msb = readByte(0x2A);
-	gas_lsb.raw = readByte(0x2B);
+	gas_r_lsb.raw = readByte(0x2B);
+        
+       
+        uint16_t gas_adc = ((uint16_t)gas_msb) << 2 | (uint16_t)gas_r_lsb.lsb;
+        
 
-	uint16_t gas_raw = gas_msb << 8 | gas_lsb.lsb;
+        int64_t var1, var2;
+        int32_t gas_res;
+        
+        // updated integer arithmetic accord Bosch BME680 V1.3 datasheet
+        // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
+        
+        //int64_t var1 = (int64_t)(((1340 + (5 * (int64_t)range_switching_error)) * ((int64_t)const_array1_int[gas_range])) >> 16);
+        //int64_t va    r2 = (int64_t)(gas_adc << 15) - (int64_t)(1 << 24) + var1;
+        //int32_t gas_res = (int32_t)((((int64_t)(const_array2_int[gas_range] * (int64_t)var1) >> 9) + (var2 >> 1)) / var2);
+        
+        var1 = (int64_t)(((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_r_lsb.range])) >> 16);
+        // see hint of TomMajor in Homematic Forum https://homematic-forum.de/forum/viewtopic.php?f=76&t=49422&start=110
+        var2 = (int64_t)((int64_t)gas_adc << 15) - (int64_t)(16777216) + (int64_t)var1;
+        gas_res = (int32_t)((((int64_t)(lookupTable2[gas_r_lsb.range] * (int64_t)var1) >> 9) + ((int64_t)var2 >> 1 )) / (int64_t)var2);
+ 
 
-	int64_t var1, var2, var3;
+        return gas_res;
 
-	var1 = (int64_t)((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_lsb.range])) / 65536;
-	var2 = (((int64_t)((int64_t)gas_raw * 32768) - (int64_t)(16777216)) + var1);
-	var3 = (((int64_t)lookupTable2[gas_lsb.range] * (int64_t)var1) / 512);
-
-	return (uint32_t)((var3 + ((int64_t)var2 / 2)) / (int64_t)var2);
 }
+
+ClosedCube_BME680_gas_r_lsb ClosedCube_BME680::read_gas_r_lsb() {
+
+        ClosedCube_BME680_gas_r_lsb gas_r_lsb;
+        gas_r_lsb.raw = readByte(0x2B);
+
+	return (gas_r_lsb);
+}
+
 
 double ClosedCube_BME680::readHumidity() {
 	uint8_t hum_msb = readByte(0x25);
 	uint8_t hum_lsb = readByte(0x26);
-	uint16_t hum_raw = hum_msb << 8 | hum_lsb;
+	uint16_t hum_adc = hum_msb << 8 | hum_lsb;
 
-	int32_t var1, var2, var3, var4, var5, var6, temp, calc_hum;
+	int32_t var1, var2, var3, var4, var5, var6, temp_scaled, hum_comp;
 
-	temp = (((int32_t)_calib_dev.tfine * 5) + 128) / 256;
-	var1 = (int32_t)(hum_raw - ((int32_t)((int32_t)_calib_hum.h1 * 16)))
-		- (((temp * (int32_t)_calib_hum.h3) / ((int32_t)100)) / 2);
-	var2 = ((int32_t)_calib_hum.h2
-		* (((temp * (int32_t)_calib_hum.h4) / ((int32_t)100))
-			+ (((temp * ((temp * (int32_t)_calib_hum.h5) / ((int32_t)100))) / 64)
-				/ ((int32_t)100)) + (int32_t)(1 * 16384))) / 1024;
-	var3 = var1 * var2;
-	var4 = (int32_t)_calib_hum.h6 * 128;
-	var4 = ((var4)+((temp * (int32_t)_calib_hum.h7) / ((int32_t)100))) / 16;
-	var5 = ((var3 / 16384) * (var3 / 16384)) / 1024;
-	var6 = (var4 * var5) / 2;
-	calc_hum = (((var3 + var6) / 1024) * ((int32_t)1000)) / 4096 / 1000.0;
+        // updated integer arithmetic accord Bosch BME680 V1.3 datasheet
+        // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
 
-	if (calc_hum > 100)
-		calc_hum = 100;
-	else if (calc_hum < 0)
-		calc_hum = 0;
-	
-	return calc_hum;
+        temp_scaled = (((int32_t)_calib_dev.tfine * 5 ) + 128 ) >> 8;
+        var1 = (int32_t)hum_adc - (int32_t)((int32_t)_calib_hum.h1 << 4) - (((temp_scaled * (int32_t)_calib_hum.h3) / ((int32_t)100)) >> 1);
+        var2 = ((int32_t)_calib_hum.h2 * (((temp_scaled * (int32_t)_calib_hum.h4) / ((int32_t)100)) + (((temp_scaled * ((temp_scaled * (int32_t)_calib_hum.h5) / ((int32_t)100))) >> 6) / ((int32_t)100)) + ((int32_t)(1 << 14)))) >> 10;
+        var3 = var1 * var2;
+        var4 = (((int32_t)_calib_hum.h6 << 7) + ((temp_scaled * (int32_t)_calib_hum.h7) / ((int32_t)100))) >> 4;
+        var5 = ((var3 >> 14) * (var3 >> 14)) >> 10;
+        var6 = (var4 * var5) >> 1;
+        //hum_comp = (var3 + var6) >> 12;
+        hum_comp = (((var3 + var6) >> 10) * ((int32_t) 1000)) >> 12;
+        
+        if (hum_comp > 100000)
+		hum_comp = 100000;
+	else if (hum_comp < 0)
+		hum_comp = 0;
+
+	return hum_comp / 1000.0;
 }
 
 double ClosedCube_BME680::readPressure() {
@@ -178,27 +193,34 @@ double ClosedCube_BME680::readPressure() {
 	uint32_t pres_raw = ((uint32_t)pres_msb << 12) | ((uint32_t)pres_lsb << 4) | ((uint32_t)pres_xlsb >> 4);
 
 	int32_t var1, var2, var3, calc_pres;
+        
+        // updated integer arithmetic accord Bosch BME680 V1.3 datasheet
+        // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
+        
+        var1 = ((int32_t)_calib_dev.tfine >> 1) - 64000;
+        var2 = ((((var1 >> 2) * (var1 >> 2)) >> 11) * (int32_t)_calib_pres.p6) >> 2;
+        var2 = var2 + ((var1 * (int32_t)_calib_pres.p5) << 1);
+        var2 = (var2 >> 2) + ((int32_t)_calib_pres.p4 << 16);
+        var1 = (((((var1 >> 2) * (var1 >> 2)) >> 13) * ((int32_t)_calib_pres.p3 << 5)) >> 3) + (((int32_t)_calib_pres.p2 * var1) >> 1);
+        var1 = var1 >> 18;
+        var1 = ((32768 + var1) * (int32_t)_calib_pres.p1) >> 15;
+        calc_pres = 1048576 - pres_raw;
+        calc_pres = (uint32_t)((calc_pres - (var2 >> 12)) * ((uint32_t)3125));
+        // see hint of TomMajor in Homematic Forum https://homematic-forum.de/forum/viewtopic.php?f=76&t=49422&start=110
+        if (calc_pres >= (1ll << 30)) {
+        calc_pres = ((calc_pres / (uint32_t)var1) << 1);
+        }
+        else {
+        calc_pres = ((calc_pres << 1) / (uint32_t)var1);
+        }
+        var1 = ((int32_t)_calib_pres.p9 * (int32_t)(((calc_pres >> 3) * (calc_pres >> 3)) >> 13)) >> 12;
+        var2 = ((int32_t)(calc_pres >> 2) * (int32_t)_calib_pres.p8) >> 13;
+        var3 = ((int32_t)(calc_pres >> 8) * (int32_t)(calc_pres >> 8) * (int32_t)(calc_pres >> 8) * (int32_t)_calib_pres.p10) >> 17;
+        calc_pres = (int32_t)(calc_pres) +  ((var1 + var2 + var3 + ((int32_t)_calib_pres.p7 << 7)) >> 4);
 
-	var1 = (((int32_t)_calib_dev.tfine) / 2) - 64000;
-	var2 = ((var1 / 4) * (var1 / 4)) / 2048;
-	var2 = ((var2) * (int32_t)_calib_pres.p6) / 4;
-	var2 = var2 + ((var1 * (int32_t)_calib_pres.p5) * 2);
-	var2 = (var2 / 4) + ((int32_t)_calib_pres.p4 * 65536);
-	var1 = ((var1 / 4) * (var1 / 4)) / 8192;
-	var1 = (((var1) * ((int32_t)_calib_pres.p3 * 32)) / 8) + (((int32_t)_calib_pres.p2 * var1) / 2);
-	var1 = var1 / 262144;
-	var1 = ((32768 + var1) * (int32_t)_calib_pres.p1) / 32768;
-	calc_pres = (int32_t)(1048576 - pres_raw);
-	calc_pres = (int32_t)((calc_pres - (var2 / 4096)) * (3125));
-	calc_pres = ((calc_pres / var1) * 2);
-	var1 = ((int32_t)_calib_pres.p9 * (int32_t)(((calc_pres / 8) * (calc_pres / 8)) / 8192)) / 4096;
-	var2 = ((int32_t)(calc_pres / 4) * (int32_t)_calib_pres.p8) / 8192;
-	var3 = ((int32_t)(calc_pres / 256) * (int32_t)(calc_pres / 256) * (int32_t)(calc_pres / 256)
-		* (int32_t)_calib_pres.p10) / 131072;
-	calc_pres = (int32_t)(calc_pres)+((var1 + var2 + var3 + ((int32_t)_calib_pres.p7 * 128)) / 16);
-
-	return calc_pres / 100.0;
+        return calc_pres / 100.0;
 }
+
 
 double ClosedCube_BME680::readTemperature() {
 	uint8_t temp_msb = readByte(0x22);
@@ -207,14 +229,16 @@ double ClosedCube_BME680::readTemperature() {
 
 	uint32_t temp_raw = ((uint32_t)temp_msb << 12) | ((uint32_t)temp_lsb << 4) | ((uint32_t)temp_xlsb >> 4);
 
-	uint32_t var1, var2, var3, calc_temp;
+	int32_t var1, var2, var3, calc_temp;
 
-	var1 = ((int32_t)temp_raw / 8) - ((int32_t)_calib_temp.t1 * 2);
-	var2 = (var1 * (int32_t)_calib_temp.t2) / 2048;
-	var3 = ((var1 / 2) * (var1 / 2)) / 4096;
-	var3 = ((var3) * ((int32_t)_calib_temp.t3 * 16)) / 16384;
-	_calib_dev.tfine = (int32_t)(var2 + var3);
-	calc_temp =(int16_t)(((_calib_dev.tfine * 5) + 128) / 256);
+        // updated integer arithmetic accord Bosch BME680 V1.3 datasheet
+        // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
+        
+        var1 = ((int32_t)temp_raw >> 3) - ((int32_t)_calib_temp.t1 << 1);
+        var2 = (var1 * (int32_t)_calib_temp.t2) >> 11;
+        var3 = ((((var1 >> 1) * (var1 >> 1)) >> 12) * ((int32_t)_calib_temp.t3 << 4)) >> 14;
+        _calib_dev.tfine = var2 + var3;
+        calc_temp = ((_calib_dev.tfine * 5) + 128) >> 8;
 
 	return calc_temp / 100.0;
 }
@@ -244,21 +268,26 @@ uint8_t ClosedCube_BME680::setIIRFilter(ClosedCube_BME680_IIRFilter filter) {
 }
 
 uint8_t ClosedCube_BME680::calculateHeaterTemperature(uint16_t heaterTemperature) {
-	int32_t var1, var2, var3, var4, var5;
-	int32_t heatr_res_x100;
+	int32_t var1, var2, var3, var4, var5, res_heat_x100;
+        int8_t res_heat_x;
 
 	if (heaterTemperature < 200)
 		heaterTemperature = 200;
 	else if (heaterTemperature > 400)
 		heaterTemperature = 400;
-
-	var1 = (((int32_t)_calib_dev.amb_temp * _calib_gas.gh3) / 1000) * 256;
-	var2 = (_calib_gas.gh1 + 784) * (((((_calib_gas.gh2 + 154009) * heaterTemperature * 5) / 100) + 3276800) / 10);
-	var3 = var1 + (var2 / 2);
-	var4 = (var3 / (_calib_dev.res_heat_range + 4));
-	var5 = (131 * _calib_dev.res_heat_val) + 65536;
-	heatr_res_x100 = (int32_t)(((var4 / var5) - 250) * 34);
-	return (uint8_t)((heatr_res_x100 + 50) / 100);
+        
+        // updated integer arithmetic accord Bosch BME680 V1.3 datasheet
+        // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
+        
+        var1 = (((int32_t)_calib_dev.amb_temp * _calib_gas.gh3) / 10) << 8;
+        var2 = (_calib_gas.gh1 + 784) * (((((_calib_gas.gh2 + 154009) * heaterTemperature * 5) / 100) + 3276800) / 10);
+        var3 = var1 + (var2 >> 1);
+        var4 = (var3 / (_calib_dev.res_heat_range + 4));
+        var5 = (131 * _calib_dev.res_heat_val) + 65536;
+        res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
+        res_heat_x = (uint8_t)((res_heat_x100 + 50) / 100);
+        
+        return res_heat_x;
 }
 
 uint8_t ClosedCube_BME680::calculateHeaterDuration(uint16_t heaterDuration)
@@ -312,7 +341,7 @@ uint8_t ClosedCube_BME680::loadCalData() {
 	_calib_temp.t3 = cal1[3];
 	
 	_calib_hum.h1 = cal2[2] << 4 | (cal2[1] & 0x0F);
-	_calib_hum.h2 = cal2[0] << 4 | cal2[1];
+	_calib_hum.h2 = cal2[0] << 4 | (cal2[1] & 0x0F);  // fixed according BOSCH BME680 data sheet V1.3 Table 13
 	_calib_hum.h3 = cal2[3];
 	_calib_hum.h4 = cal2[4];
 	_calib_hum.h5 = cal2[5];
@@ -331,10 +360,10 @@ uint8_t ClosedCube_BME680::loadCalData() {
 	_calib_pres.p10 = cal1[23];
 
 	_calib_gas.gh1 = cal2[14];
-	_calib_gas.gh2 = cal2[12] << 8 | cal2[13];
+	_calib_gas.gh2 = cal2[13] << 8 | cal2[12];
 	_calib_gas.gh3 = cal2[15];
 
-	_calib_dev.res_heat_range = readByte(0x02);
+	_calib_dev.res_heat_range = ( readByte(0x02) & B00110000 ) >> 4;
 	_calib_dev.res_heat_val = readByte(0x00);
 	_calib_dev.range_sw_err = readByte(0x04);
 
