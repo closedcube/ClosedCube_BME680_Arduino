@@ -107,7 +107,7 @@ typedef union {
 		uint8_t unused : 2;
 		uint8_t measuringStatusFlag : 1;
 		uint8_t gasMeasuringStatusFlag : 1;
-		uint8_t newDataFlag : 2;
+		uint8_t newDataFlag : 1;
 	};
 } ClosedCube_BME680_Status;
 
