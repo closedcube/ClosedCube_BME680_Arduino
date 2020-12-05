@@ -135,12 +135,12 @@ uint32_t ClosedCube_BME680::readGasResistance() {
         // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
         
         //int64_t var1 = (int64_t)(((1340 + (5 * (int64_t)range_switching_error)) * ((int64_t)const_array1_int[gas_range])) >> 16);
-        //int64_t va    r2 = (int64_t)(gas_adc << 15) - (int64_t)(1 << 24) + var1;
+        //int64_t var2 = (int64_t)(gas_adc << 15) - (int64_t)(1 << 24) + var1;
         //int32_t gas_res = (int32_t)((((int64_t)(const_array2_int[gas_range] * (int64_t)var1) >> 9) + (var2 >> 1)) / var2);
         
         var1 = (int64_t)(((1340 + (5 * (int64_t)_calib_dev.range_sw_err)) * ((int64_t)lookupTable1[gas_r_lsb.range])) >> 16);
         // see hint of TomMajor in Homematic Forum https://homematic-forum.de/forum/viewtopic.php?f=76&t=49422&start=110
-        var2 = (int64_t)((int64_t)gas_adc << 15) - (int64_t)(16777216) + (int64_t)var1;
+        var2 = (int64_t)((int64_t)gas_adc << 15) - (int64_t)(1LL<<24) + (int64_t)var1;
         gas_res = (int32_t)((((int64_t)(lookupTable2[gas_r_lsb.range] * (int64_t)var1) >> 9) + ((int64_t)var2 >> 1 )) / (int64_t)var2);
  
 
@@ -207,7 +207,7 @@ double ClosedCube_BME680::readPressure() {
         calc_pres = 1048576 - pres_raw;
         calc_pres = (uint32_t)((calc_pres - (var2 >> 12)) * ((uint32_t)3125));
         // see hint of TomMajor in Homematic Forum https://homematic-forum.de/forum/viewtopic.php?f=76&t=49422&start=110
-        if (calc_pres >= (1ll << 30)) {
+        if (calc_pres >= (1LL << 30)) {
         calc_pres = ((calc_pres / (uint32_t)var1) << 1);
         }
         else {
@@ -276,10 +276,10 @@ uint8_t ClosedCube_BME680::calculateHeaterTemperature(uint16_t heaterTemperature
 	else if (heaterTemperature > 400)
 		heaterTemperature = 400;
         
-        // updated integer arithmetic accord Bosch BME680 V1.3 datasheet
+        // updated integer arithmetic accord Bosch BME680 V1.4 datasheet
         // https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme680-ds001.pdf
         
-        var1 = (((int32_t)_calib_dev.amb_temp * _calib_gas.gh3) / 10) << 8;
+        var1 = (((int32_t)_calib_dev.amb_temp * _calib_gas.gh3) / 1000) *256; // changed in Bosch BME680 V1.4 datasheet !!
         var2 = (_calib_gas.gh1 + 784) * (((((_calib_gas.gh2 + 154009) * heaterTemperature * 5) / 100) + 3276800) / 10);
         var3 = var1 + (var2 >> 1);
         var4 = (var3 / (_calib_dev.res_heat_range + 4));
